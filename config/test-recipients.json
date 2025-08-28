@@ -1,0 +1,57 @@
+{
+	"test_recipients": [
+		{
+			"email": "saleh@arcanomy.com",
+			"name": "Saleh",
+			"role": "Founder",
+			"always_include": true,
+			"description": "Primary account - always receives test emails"
+		},
+		{
+			"email": "test@arcanomy.com",
+			"name": "Test Account",
+			"role": "QA",
+			"always_include": true,
+			"description": "Main test account for QA"
+		},
+		{
+			"email": "qa@arcanomy.com",
+			"name": "QA Team",
+			"role": "Quality Assurance",
+			"always_include": false,
+			"include_on_staging": true,
+			"description": "QA team - only for staging tests"
+		},
+		{
+			"email": "newsletter-test-1@arcanomy.com",
+			"name": "Test User 1",
+			"role": "Test",
+			"always_include": false,
+			"description": "Additional test recipient"
+		},
+		{
+			"email": "newsletter-test-2@arcanomy.com",
+			"name": "Test User 2",
+			"role": "Test",
+			"always_include": false,
+			"description": "Additional test recipient"
+		}
+	],
+	"settings": {
+		"subject_prefix": "[TEST]",
+		"add_test_banner": true,
+		"test_banner_text": "This is a test email - please ignore",
+		"test_banner_color": "#ff6b6b",
+		"max_test_recipients": 10
+	},
+	"override_rules": [
+		{
+			"condition": "branch = 'staging'",
+			"action": "include_staging_recipients"
+		},
+		{
+			"condition": "mode = 'live'",
+			"action": "exclude_all_test_recipients"
+		}
+	]
+}

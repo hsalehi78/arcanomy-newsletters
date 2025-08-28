@@ -1,0 +1,63 @@
+{
+	"segments": [
+		{
+			"id": "all",
+			"name": "All Subscribers",
+			"description": "All active newsletter subscribers",
+			"query": "status = 'active'",
+			"estimated_size": "100%"
+		},
+		{
+			"id": "engaged_30d",
+			"name": "Recently Engaged",
+			"description": "Subscribers who opened an email in the last 30 days",
+			"query": "status = 'active' AND last_email_opened_at > CURRENT_DATE - INTERVAL '30 days'",
+			"estimated_size": "60-70%"
+		},
+		{
+			"id": "new_7d",
+			"name": "New Subscribers",
+			"description": "Subscribers who joined in the last 7 days",
+			"query": "status = 'active' AND confirmed_at > CURRENT_DATE - INTERVAL '7 days'",
+			"estimated_size": "5-10%"
+		},
+		{
+			"id": "dormant_90d",
+			"name": "Dormant Subscribers",
+			"description": "Subscribers who haven't opened an email in 90+ days",
+			"query": "status = 'active' AND (last_email_opened_at < CURRENT_DATE - INTERVAL '90 days' OR last_email_opened_at IS NULL)",
+			"estimated_size": "15-20%",
+			"notes": "Consider re-engagement campaign"
+		},
+		{
+			"id": "high_engagement",
+			"name": "Highly Engaged",
+			"description": "Subscribers who frequently open and click emails",
+			"query": "status = 'active' AND total_emails_opened > 10 AND (total_emails_clicked::float / NULLIF(total_emails_opened, 0)) > 0.3",
+			"estimated_size": "20-30%"
+		},
+		{
+			"id": "calculator_users",
+			"name": "Calculator Users",
+			"description": "Subscribers who signed up through calculators",
+			"query": "status = 'active' AND source = 'calculator'",
+			"estimated_size": "30-40%"
+		},
+		{
+			"id": "blog_readers",
+			"name": "Blog Readers",
+			"description": "Subscribers who signed up through blog content",
+			"query": "status = 'active' AND source = 'blog'",
+			"estimated_size": "40-50%"
+		},
+		{
+			"id": "test_recipients",
+			"name": "Test Recipients",
+			"description": "Internal test email recipients",
+			"query": "is_test_recipient = true",
+			"estimated_size": "5-10 emails"
+		}
+	],
+	"default_segment": "all",
+	"test_segment": "test_recipients"
+}

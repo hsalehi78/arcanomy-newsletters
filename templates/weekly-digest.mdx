@@ -1,0 +1,134 @@
+---
+# Template: Weekly Digest Newsletter
+# Copy this file to create a new weekly newsletter
+
+slug: "YYYY-MM-DD-weekly-digest"
+subject: "📊 Your Weekly Finance Digest | [Week Topic]"
+preheader: "This week's top insights and market updates"
+
+# Publishing Controls (keep as false for templates)
+publish: false
+mode: "test"
+
+# Targeting
+segment: "all"
+tags: ["weekly", "digest", "markets"]
+
+# Optional Fields
+utm_campaign: "weekly-digest-YYYY-MM"
+reply_to: "saleh@arcanomy.com"
+
+# Content Slots
+ads:
+  - position: "top"
+    content: "Try our FIRE Calculator"
+    cta: "Calculate Your FIRE Number"
+    url: "/calculators/fire-calculator?utm_source=newsletter"
+
+social:
+  x: "📊 This week's financial digest is out! Key takeaways..."
+  linkedin: "New weekly digest: Market insights and financial planning tips..."
+
+features:
+  show_related_posts: true
+  show_calculator_spotlight: true
+  show_community_section: false
+---
+
+# [Week Topic/Theme]
+
+<Greeting />
+
+Welcome to this week's finance digest! Here's what caught our attention in the markets and personal finance world.
+
+## 📈 Market Pulse
+
+<DataTable>
+| Index | Week | YTD |
+|-------|------|-----|
+| S&P 500 | +X.X% | +X.X% |
+| NASDAQ | +X.X% | +X.X% |
+| Dow Jones | +X.X% | +X.X% |
+| 10-Year Treasury | X.XX% | - |
+</DataTable>
+
+### Key Takeaways
+- **Trend 1**: [Brief explanation]
+- **Trend 2**: [Brief explanation]
+- **Trend 3**: [Brief explanation]
+
+<Button href="/blog/[relevant-post-slug]">
+  Read Full Market Analysis
+</Button>
+
+<Hr />
+
+## 🎯 Featured Strategy: [Strategy Name]
+
+<Callout type="tip">
+  **Key Insight**: [One-sentence powerful insight or statistic]
+</Callout>
+
+[2-3 paragraphs explaining the strategy, why it matters now, and how readers can implement it]
+
+### Quick Action Steps:
+1. [Action step 1]
+2. [Action step 2]
+3. [Action step 3]
+
+<Button href="/blog/[strategy-deep-dive-post]">
+  Learn More About This Strategy
+</Button>
+
+<Spacer size={32} />
+
+## 🧮 Calculator Spotlight
+
+<CalculatorCard 
+  title="[Calculator Name]"
+  description="[What it helps you discover]"
+  href="/calculators/[calculator-slug]"
+  example="Example: [Specific scenario with numbers]"
+/>
+
+<Hr />
+
+## 📚 Must-Read Articles This Week
+
+<BlogGrid posts={["post-slug-1", "post-slug-2", "post-slug-3"]} />
+
+## 💡 Quick Tips
+
+<Callout type="info">
+  **Tax Tip**: [Seasonal tax planning tip]
+</Callout>
+
+<Callout type="warning">
+  **Watch Out**: [Common mistake or pitfall to avoid]
+</Callout>
+
+## 🗓️ Upcoming Dates
+
+- **[Date]**: [Important deadline or event]
+- **[Date]**: [Market event or economic data release]
+- **[Date]**: [Relevant financial milestone]
+
+<Hr />
+
+## 💬 Community Question
+
+> "[Interesting question from a reader or common concern]"
+
+[Your answer/perspective in 2-3 paragraphs]
+
+Have a question? Reply to this email and we might feature it next week!
+
+<Spacer size={32} />
+
+## 🎉 What's New at Arcanomy
+
+[Brief update about new features, calculators, or content]
+
+<Signature />
+
+P.S. [Personal note or call-to-action]

@@ -1,0 +1,301 @@
+name: Validate Newsletter MDX
+
+on:
+  pull_request:
+    paths:
+      - '**.mdx'
+      - 'config/**'
+      - '.github/workflows/validate.yml'
+  push:
+    branches:
+      - main
+      - staging
+    paths:
+      - '**.mdx'
+
+jobs:
+  validate:
+    name: Validate MDX Files
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install Dependencies
+        run: pnpm add -D @mdx-js/mdx gray-matter remark remark-frontmatter
+
+      - name: Validate MDX Files
+        run: |
+          cat << 'EOF' > validate-mdx.js
+          const fs = require('fs').promises;
+          const path = require('path');
+          const matter = require('gray-matter');
+          const { compile } = require('@mdx-js/mdx');
+
+          const REQUIRED_FIELDS = ['slug', 'subject', 'preheader', 'publish', 'mode', 'segment'];
+          const VALID_MODES = ['test', 'live'];
+          const VALID_SEGMENTS = ['all', 'engaged_30d', 'new_7d', 'dormant_90d', 'high_engagement', 'calculator_users', 'blog_readers', 'test_recipients'];
+
+          async function findMdxFiles(dir, files = []) {
+            const items = await fs.readdir(dir, { withFileTypes: true });
+            
+            for (const item of items) {
+              const fullPath = path.join(dir, item.name);
+              if (item.isDirectory() && !item.name.startsWith('.')) {
+                await findMdxFiles(fullPath, files);
+              } else if (item.isFile() && item.name.endsWith('.mdx')) {
+                files.push(fullPath);
+              }
+            }
+            
+            return files;
+          }
+
+          async function validateMdxFile(filePath) {
+            console.log(`\nValidating: ${filePath}`);
+            const errors = [];
+            const warnings = [];
+            
+            try {
+              // Read file content
+              const content = await fs.readFile(filePath, 'utf-8');
+              
+              // Parse frontmatter
+              const { data: frontmatter, content: mdxContent } = matter(content);
+              
+              // Check filename format for newsletter files (not templates)
+              const filename = path.basename(filePath);
+              const dir = path.dirname(filePath);
+              if (!dir.includes('templates') && !filename.match(/^\d{4}-\d{2}-\d{2}-[\w-]+\.mdx$/)) {
+                warnings.push(`Filename should follow pattern: YYYY-MM-DD-slug.mdx (got: ${filename})`);
+              }
+              
+              // Validate required fields
+              for (const field of REQUIRED_FIELDS) {
+                if (!(field in frontmatter)) {
+                  errors.push(`Missing required field: ${field}`);
+                }
+              }
+              
+              // Validate field values
+              if (frontmatter.mode && !VALID_MODES.includes(frontmatter.mode)) {
+                errors.push(`Invalid mode: ${frontmatter.mode}. Must be one of: ${VALID_MODES.join(', ')}`);
+              }
+              
+              if (frontmatter.segment && !VALID_SEGMENTS.includes(frontmatter.segment)) {
+                warnings.push(`Unknown segment: ${frontmatter.segment}. Expected one of: ${VALID_SEGMENTS.join(', ')}`);
+              }
+              
+              // Check for accidental live sends in PRs
+              if (process.env.GITHUB_EVENT_NAME === 'pull_request') {
+                if (frontmatter.publish === true && frontmatter.mode === 'live') {
+                  errors.push('DANGER: Newsletter is set to publish in LIVE mode. PRs cannot have publish:true AND mode:live');
+                }
+              }
+              
+              // Validate schedule format if present
+              if (frontmatter.schedule) {
+                const date = new Date(frontmatter.schedule);
+                if (isNaN(date.getTime())) {
+                  errors.push(`Invalid schedule date format: ${frontmatter.schedule}. Use ISO 8601 format`);
+                }
+              }
+              
+              // Validate MDX compilation
+              try {
+                await compile(mdxContent, {
+                  format: 'mdx'
+                });
+              } catch (mdxError) {
+                errors.push(`MDX compilation error: ${mdxError.message}`);
+              }
+              
+              // Check for reasonable content length
+              const wordCount = mdxContent.split(/\s+/).length;
+              if (wordCount < 50) {
+                warnings.push(`Newsletter seems too short (${wordCount} words). Consider adding more content.`);
+              }
+              if (wordCount > 5000) {
+                warnings.push(`Newsletter is very long (${wordCount} words). Consider splitting into multiple issues.`);
+              }
+              
+              // Return results
+              return { filePath, errors, warnings, frontmatter };
+              
+            } catch (error) {
+              return { 
+                filePath, 
+                errors: [`Failed to process file: ${error.message}`], 
+                warnings: [] 
+              };
+            }
+          }
+
+          async function main() {
+            console.log('🔍 MDX Newsletter Validation\n');
+            console.log('================================');
+            
+            // Find all MDX files
+            const mdxFiles = await findMdxFiles('.');
+            console.log(`Found ${mdxFiles.length} MDX files to validate\n`);
+            
+            // Validate each file
+            const results = await Promise.all(mdxFiles.map(validateMdxFile));
+            
+            // Collect all errors and warnings
+            const allErrors = [];
+            const allWarnings = [];
+            
+            for (const result of results) {
+              if (result.errors.length > 0) {
+                allErrors.push({ file: result.filePath, errors: result.errors });
+              }
+              if (result.warnings.length > 0) {
+                allWarnings.push({ file: result.filePath, warnings: result.warnings });
+              }
+              
+              // Show file status
+              if (result.errors.length === 0 && result.warnings.length === 0) {
+                console.log(`✅ ${path.relative('.', result.filePath)}`);
+              } else if (result.errors.length > 0) {
+                console.log(`❌ ${path.relative('.', result.filePath)}`);
+                result.errors.forEach(e => console.log(`   ERROR: ${e}`));
+                result.warnings.forEach(w => console.log(`   WARNING: ${w}`));
+              } else {
+                console.log(`⚠️  ${path.relative('.', result.filePath)}`);
+                result.warnings.forEach(w => console.log(`   WARNING: ${w}`));
+              }
+              
+              // Show publish status for newsletters
+              if (result.frontmatter && !result.filePath.includes('templates')) {
+                const status = result.frontmatter.publish ? 
+                  `🚀 WILL PUBLISH (mode: ${result.frontmatter.mode})` : 
+                  `📝 DRAFT (will not publish)`;
+                console.log(`   Status: ${status}`);
+              }
+            }
+            
+            // Summary
+            console.log('\n================================');
+            console.log('📊 Validation Summary\n');
+            console.log(`Total files validated: ${mdxFiles.length}`);
+            console.log(`Errors found: ${allErrors.length}`);
+            console.log(`Warnings found: ${allWarnings.length}`);
+            
+            // Exit with error if validation failed
+            if (allErrors.length > 0) {
+              console.log('\n❌ Validation failed! Please fix the errors above.');
+              process.exit(1);
+            }
+            
+            if (allWarnings.length > 0) {
+              console.log('\n⚠️  Validation passed with warnings. Consider addressing them.');
+            } else {
+              console.log('\n✅ All MDX files validated successfully!');
+            }
+          }
+
+          main().catch(error => {
+            console.error('Validation script failed:', error);
+            process.exit(1);
+          });
+          EOF
+
+          node validate-mdx.js
+
+      - name: Check for Live Sends
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          echo "🔍 Checking for newsletters ready to send..."
+          
+          cat << 'EOF' > check-live.js
+          const fs = require('fs').promises;
+          const path = require('path');
+          const matter = require('gray-matter');
+
+          async function checkLiveSends() {
+            const files = [];
+            
+            async function findMdx(dir) {
+              const items = await fs.readdir(dir, { withFileTypes: true });
+              for (const item of items) {
+                const fullPath = path.join(dir, item.name);
+                if (item.isDirectory() && !item.name.startsWith('.')) {
+                  await findMdx(fullPath);
+                } else if (item.isFile() && item.name.endsWith('.mdx')) {
+                  files.push(fullPath);
+                }
+              }
+            }
+            
+            await findMdx('.');
+            
+            const readyToSend = [];
+            for (const file of files) {
+              if (file.includes('templates')) continue;
+              
+              const content = await fs.readFile(file, 'utf-8');
+              const { data } = matter(content);
+              
+              if (data.publish === true && data.mode === 'live') {
+                readyToSend.push({
+                  file: path.relative('.', file),
+                  subject: data.subject,
+                  segment: data.segment
+                });
+              }
+            }
+            
+            if (readyToSend.length > 0) {
+              console.log('📮 Newsletters ready for LIVE sending:');
+              readyToSend.forEach(n => {
+                console.log(`  - ${n.file}`);
+                console.log(`    Subject: ${n.subject}`);
+                console.log(`    Segment: ${n.segment}`);
+              });
+            } else {
+              console.log('📝 No newsletters are set for live sending.');
+            }
+          }
+
+          checkLiveSends().catch(console.error);
+          EOF
+
+          node check-live.js
+
+      - name: Comment PR Status
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const comment = `## 📧 Newsletter Validation Results
+            
+            ✅ All MDX files have been validated successfully.
+            
+            **Safety Check:** No newsletters will be sent from pull requests.
+            
+            To send a newsletter:
+            1. Merge this PR to main
+            2. Ensure \`publish: true\` and \`mode: "live"\` are set
+            3. The newsletter will be automatically sent upon merge`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

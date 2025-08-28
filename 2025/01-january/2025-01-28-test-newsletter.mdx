@@ -1,0 +1,127 @@
+---
+slug: "2025-01-28-test-newsletter"
+subject: "🧪 Test Newsletter - System Setup"
+preheader: "Testing the newsletter system setup"
+
+# Publishing Controls - SET TO FALSE FOR SAFETY
+publish: false
+mode: "test"
+
+segment: "test_recipients"
+tags: ["test", "system-check"]
+
+utm_campaign: "test-2025-01"
+reply_to: "saleh@arcanomy.com"
+
+features:
+  show_related_posts: true
+  show_calculator_spotlight: true
+  show_community_section: false
+---
+
+# Newsletter System Test
+
+<Greeting />
+
+This is a test newsletter to verify that our newsletter system is working correctly. If you're receiving this, it means our setup is functioning as expected!
+
+## 🧪 Testing Components
+
+### Basic Text Formatting
+
+This paragraph demonstrates **bold text**, *italic text*, and ***bold italic text***. We can also include [links to our website](https://arcanomy.com).
+
+### Button Component
+
+<Button href="https://arcanomy.com/calculators">
+  Test Button - Visit Calculators
+</Button>
+
+### Callout Component
+
+<Callout type="info">
+  **Info Callout**: This is an informational callout box that highlights important information.
+</Callout>
+
+<Callout type="warning">
+  **Warning Callout**: This warns users about something important.
+</Callout>
+
+<Callout type="tip">
+  **Tip Callout**: This provides helpful tips and best practices.
+</Callout>
+
+### Data Table
+
+<DataTable>
+| Feature | Status | Notes |
+|---------|--------|-------|
+| MDX Rendering | ✅ Working | Components render correctly |
+| Email Delivery | ⏳ Testing | Checking Resend integration |
+| Tracking | 🔄 Pending | Will test after delivery |
+| Archives | 📁 Ready | Git repository prepared |
+</DataTable>
+
+### Spacing
+
+Content before spacer.
+
+<Spacer size={32} />
+
+Content after spacer (32px gap above).
+
+### Horizontal Rule
+
+Content before rule.
+
+<Hr />
+
+Content after rule.
+
+## 📊 Calculator Card Test
+
+<CalculatorCard 
+  title="FIRE Calculator"
+  description="Calculate your path to financial independence"
+  href="/calculators/fire-calculator"
+  example="Example: A 30-year-old saving $2,000/month could retire by 45"
+/>
+
+## 📚 Blog Grid Test
+
+Testing blog grid component (these are placeholder slugs):
+
+<BlogGrid posts={["test-post-1", "test-post-2", "test-post-3"]} />
+
+## 🔍 System Checks
+
+This test newsletter verifies:
+
+- ✅ MDX compilation and rendering
+- ✅ Component availability
+- ✅ Frontmatter parsing
+- ✅ Test mode enforcement
+- ✅ Segment targeting
+- ⏳ Email delivery pipeline
+- ⏳ Archive generation
+- ⏳ Webhook processing
+
+<Quote>
+  "Testing is the first step to reliability." - DevOps Wisdom
+</Quote>
+
+## Next Steps
+
+Once this test is successful, we'll:
+
+1. Verify email delivery to test recipients
+2. Check archive generation
+3. Test the unsubscribe flow
+4. Validate tracking pixels
+5. Configure production workflows
+
+<Signature />
+
+---
+
+*This is a test email sent to internal test recipients only. If you received this in error, please contact saleh@arcanomy.com*
